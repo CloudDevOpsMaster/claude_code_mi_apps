@@ -1,0 +1,9 @@
+{
+  "projectId": "alipay-mini-program-app",
+  "projectName": "Alipay+ Mini Program Example",
+  "version": "1.0.0",
+  "miniapp": {
+    "path": "."
+  },
+  "compileType": "miniprogram"
+}

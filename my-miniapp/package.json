@@ -1,0 +1,19 @@
+{
+  "name": "alipay-mini-program",
+  "version": "1.0.0",
+  "description": "Alipay+ Mini Program example with counter and API integration",
+  "main": "app.js",
+  "scripts": {
+    "dev": "echo 'Development mode - use npm run preview from root'",
+    "test": "echo 'Tests would run here'",
+    "build": "miniprogram-cli build"
+  },
+  "keywords": [
+    "alipay",
+    "mini-program",
+    "counter",
+    "example"
+  ],
+  "author": "Development Team",
+  "license": "MIT"
+}

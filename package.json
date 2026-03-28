@@ -1,0 +1,20 @@
+{
+  "name": "alipay-mini-program-workspace",
+  "version": "1.0.0",
+  "description": "Workspace para Alipay+ Mini Programs en Linux",
+  "scripts": {
+    "preview": "cd my-miniapp && miniprogram-cli preview",
+    "upload": "cd my-miniapp && miniprogram-cli upload",
+    "init-cli": "bash scripts/init-dev.sh",
+    "dev": "cd my-miniapp && npm run dev",
+    "test": "echo 'Ejecuta tests en my-miniapp/package.json'"
+  },
+  "keywords": [
+    "alipay",
+    "mini-program",
+    "mobile",
+    "development"
+  ],
+  "author": "Development Team",
+  "license": "MIT"
+}

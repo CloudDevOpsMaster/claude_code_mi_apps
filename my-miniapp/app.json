@@ -1,0 +1,17 @@
+{
+  "pages": [
+    "pages/index/index"
+  ],
+  "window": {
+    "defaultTitle": "Alipay Mini Program",
+    "backgroundColor": "#ffffff",
+    "barTintColor": "#ffffff",
+    "navigationBarTitleText": "Mini App",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black"
+  },
+  "meta": {
+    "appid": "",
+    "name": "alipay-mini-program"
+  }
+}

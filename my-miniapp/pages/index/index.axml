@@ -1,0 +1,105 @@
+<!-- pages/index/index.axml
+  Markup de la página principal (Alipay XML Template)
+
+  IMPORTANTE: No es HTML estándar
+  - Usar <view> en lugar de <div>
+  - Usar <text> en lugar de <span> o párrafos
+  - Usar <button> para botones
+  - Usar <image> para imágenes
+  - Usar onTap (no onClick) para eventos
+  - Usar {{variable}} para binding de datos
+  - Usar a:if="{{condition}}" para condicionales
+  - Usar a:for="{{items}}" para loops
+-->
+
+<view class="page-container">
+  <!-- Encabezado -->
+  <view class="header">
+    <text class="title">{{message}}</text>
+    <text class="subtitle">Ejemplo de Contador + API</text>
+  </view>
+
+  <!-- Sección de Contador -->
+  <view class="section counter-section">
+    <text class="section-title">Contador</text>
+
+    <view class="counter-display">
+      <text class="counter-value">{{counter}}</text>
+    </view>
+
+    <view class="button-group">
+      <button class="btn btn-primary" onTap="decrement">
+        <text>−</text>
+      </button>
+      <button class="btn btn-primary" onTap="increment">
+        <text>+</text>
+      </button>
+      <button class="btn btn-secondary" onTap="reset">
+        <text>Resetear</text>
+      </button>
+    </view>
+
+    <button class="btn btn-info" onTap="showAlert">
+      <text>Mostrar Alerta</text>
+    </button>
+  </view>
+
+  <!-- Sección de Información del Usuario -->
+  <view class="section user-section">
+    <text class="section-title">Información del Usuario</text>
+
+    <!-- Mostrar cuando hay datos -->
+    <view a:if="{{userInfo}}">
+      <view class="info-item">
+        <text class="label">Nombre:</text>
+        <text class="value">{{userInfo.name}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">ID:</text>
+        <text class="value">{{userInfo.id}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">Estado:</text>
+        <text class="value">{{userInfo.status}}</text>
+      </view>
+    </view>
+
+    <!-- Mostrar cuando está cargando -->
+    <view a:if="{{loading}}">
+      <text class="loading-text">Cargando...</text>
+    </view>
+
+    <!-- Mostrar si hay error -->
+    <view a:if="{{error}}">
+      <text class="error-text">Error: {{error}}</text>
+    </view>
+  </view>
+
+  <!-- Sección de API Response (si existe) -->
+  <view class="section" a:if="{{apiResponse}}">
+    <text class="section-title">Respuesta de API</text>
+    <view class="api-response">
+      <text>{{apiResponse.message}}</text>
+    </view>
+  </view>
+
+  <!-- Sección de Controles de API -->
+  <view class="section api-section">
+    <text class="section-title">Pruebas de API</text>
+    <button class="btn btn-success" onTap="fetchData">
+      <text>Obtener Datos (API)</text>
+    </button>
+    <text class="helper-text">
+      Ver console.log para logs de depuración
+    </text>
+  </view>
+
+  <!-- Divider -->
+  <view class="divider"></view>
+
+  <!-- Footer con info del sistema -->
+  <view class="footer">
+    <text class="footer-text">Alipay+ Mini Program Platform</text>
+    <text class="footer-text">Versión 1.0.0</text>
+  </view>
+</view>

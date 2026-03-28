@@ -1,0 +1,9 @@
+{
+  "projectId": "alipay-mini-program-workspace",
+  "projectName": "Alipay+ Mini Program Development",
+  "version": "1.0.0",
+  "miniapp": {
+    "path": "./my-miniapp"
+  },
+  "compileType": "miniprogram"
+}

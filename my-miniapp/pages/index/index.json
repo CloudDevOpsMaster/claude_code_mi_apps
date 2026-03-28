@@ -1,0 +1,7 @@
+{
+  "defaultTitle": "Inicio | Alipay Mini Program",
+  "navigationBarBackgroundColor": "#667eea",
+  "navigationBarTextStyle": "white",
+  "allowsBounceVertical": "YES",
+  "allowsBounceHorizontal": "NO"
+}
