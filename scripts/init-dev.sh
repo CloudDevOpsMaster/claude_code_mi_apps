@@ -19,6 +19,10 @@
 
 set -e  # Exit on error
 
+###############################################################################
+# Validation Functions - verify prerequisites and initialization
+###############################################################################
+
 # Colores para output
 RED='\033[0;31m'
 GREEN='\033[0;32m'

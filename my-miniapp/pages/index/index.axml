@@ -1,15 +1,15 @@
 <!-- pages/index/index.axml
   Markup de la página principal (Alipay XML Template)
 
-  IMPORTANTE: No es HTML estándar
-  - Usar <view> en lugar de <div>
-  - Usar <text> en lugar de <span> o párrafos
-  - Usar <button> para botones
-  - Usar <image> para imágenes
-  - Usar onTap (no onClick) para eventos
-  - Usar {{variable}} para binding de datos
-  - Usar a:if="{{condition}}" para condicionales
-  - Usar a:for="{{items}}" para loops
+  IMPORTANTE: No es HTML estándar. Usar elementos AXML:
+  - view para contenedores (en lugar de contenedores genéricos)
+  - text para texto (en lugar de párrafos)
+  - button para botones
+  - image para imágenes
+  - onTap para eventos (no onClick)
+  - {{variable}} para binding de datos
+  - a:if="{{condition}}" para condicionales
+  - a:for="{{items}}" para loops
 -->
 
 <view class="page-container">

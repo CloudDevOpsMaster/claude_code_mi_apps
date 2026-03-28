@@ -2,7 +2,7 @@
  * pages/index/index.js - Página principal con ejemplo de contador
  *
  * Demuestra:
- * - this.setData() para actualizar estado (NUNCA this.data.key = value)
+ * - this.setData() para actualizar estado reactivamente
  * - Event handlers: onTap
  * - Ciclo de vida de página
  * - Integración con API wrapper

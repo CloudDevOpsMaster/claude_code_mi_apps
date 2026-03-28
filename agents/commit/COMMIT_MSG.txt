@@ -1,0 +1,10 @@
+feat:   --coverage 80
+
+# Modo automático (sin pausas)
+claude-iterative \
+  -t "$(cat PROMPT_SETUP_MINIPROGRAM.md | tail -n +10)" \
+  --type feature \
+  --auto
+```
+
+Tests: coverage 97.0%

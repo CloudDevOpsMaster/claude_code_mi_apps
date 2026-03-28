@@ -7,7 +7,27 @@
     "upload": "cd my-miniapp && miniprogram-cli upload",
     "init-cli": "bash scripts/init-dev.sh",
     "dev": "cd my-miniapp && npm run dev",
-    "test": "echo 'Ejecuta tests en my-miniapp/package.json'"
+    "test": "jest --coverage --coverageDirectory=coverage --forceExit",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": [
+      "my-miniapp/utils/helpers.js",
+      "!node_modules/**",
+      "!coverage/**"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
   },
   "keywords": [
     "alipay",
