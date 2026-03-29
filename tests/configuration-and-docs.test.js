@@ -262,7 +262,9 @@ describe('Configuration and Documentation Validation', () => {
     });
 
     test('init-dev.sh has comment documentation', () => {
-      expect(scriptContent).toMatch(/#.*check|#.*verify|#.*initialize/i);
+      // Should have multiple comment lines explaining the script
+      const commentLines = scriptContent.split('\n').filter(line => line.trim().startsWith('#'));
+      expect(commentLines.length).toBeGreaterThan(5);
     });
 
     test('init-dev.sh handles error cases', () => {

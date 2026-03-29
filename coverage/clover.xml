@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1774731536717" clover="3.2.0">
-  <project timestamp="1774731536717" name="All files">
+<coverage generated="1774743751604" clover="3.2.0">
+  <project timestamp="1774743751604" name="All files">
     <metrics statements="33" coveredstatements="32" conditionals="38" coveredconditionals="38" methods="15" coveredmethods="15" elements="86" coveredelements="85" complexity="0" loc="33" ncloc="33" packages="1" files="1" classes="1"/>
     <file name="helpers.js" path="/home/dev/Repos/claude_code_mi_apps/my-miniapp/utils/helpers.js">
       <metrics statements="33" coveredstatements="32" conditionals="38" coveredconditionals="38" methods="15" coveredmethods="15"/>
