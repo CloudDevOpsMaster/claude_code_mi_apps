@@ -7,10 +7,12 @@
     "upload": "cd my-miniapp && miniprogram-cli upload",
     "init-cli": "bash scripts/init-dev.sh",
     "dev": "cd my-miniapp && npm run dev",
+    "dev:local": "node scripts/dev-server.js",
     "test": "jest --coverage --coverageDirectory=coverage --forceExit",
     "test:watch": "jest --watch"
   },
   "devDependencies": {
+    "@antglobal/miniprogram-cli": "^2.0.0",
     "jest": "^29.7.0"
   },
   "jest": {

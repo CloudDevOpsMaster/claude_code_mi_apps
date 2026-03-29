@@ -637,6 +637,12 @@ npm run dev
 
 ### miniprogram-cli Commands
 
+**Instalación previa:**
+```bash
+npm install -g @antglobal/miniprogram-cli
+```
+
+**Comandos:**
 ```bash
 # Mostrar version
 miniprogram-cli --version
