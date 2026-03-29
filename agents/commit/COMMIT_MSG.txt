@@ -1,10 +1,10 @@
-feat:   --coverage 80
+feat: Configurar el ambiente de desarrollo completo para Alipay+ Mini Programs en Linux.
 
-# Modo automático (sin pausas)
-claude-iterative \
-  -t "$(cat PROMPT_SETUP_MINIPROGRAM.md | tail -n +10)" \
-  --type feature \
-  --auto
-```
+CONTEXTO DEL SISTEMA:
+- OS: Linux (Ubuntu/Debian o compatible)
+- Runtime: Node.js 18+ ya instalado
+- Herramienta de flujo: claude-iterative (este mismo workflow)
+- Propósito: desarrollo de Alipay+ Mini Programs usando MiniProgram CLI (sin IDE gráfico)
+- Preview: dispositivo real via QR code en terminal
 
 Tests: coverage 97.0%
