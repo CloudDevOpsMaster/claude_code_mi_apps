@@ -1,458 +1,691 @@
-# Arquitectura: claude-iterative (80% Test Coverage)
+# Arquitectura: Setup Alipay+ Mini Programs (Linux)
 
 ## Visión General
 
-Sistema de orquestación de agentes IA multi-fase que ejecuta workflows automáticos.
-**Objetivo**: 80% cobertura de código mediante arquitectura modular y testeable.
+Configurar ambiente completo de desarrollo para Alipay+ Mini Programs con estructura productiva, documentación clara y herramientas automáticas.
+
+**Objetivo**: Workflow reproducible desde cero (clonar → instalar → preview → desarrollar).
 
 ---
 
 ## 1. Patrón de Diseño
 
-### Arquitectura Principal: **Pipeline de Fases + Factory Pattern**
+### Arquitectura Principal: **Convention over Configuration + Layered**
 
 ```
-┌─────────────────────────────────────────────────────┐
-│         IterativeWorkflow (Orquestador)             │
-│  - Coordina fases secuenciales/paralelas           │
-│  - Gestiona estado y transiciones                  │
-│  - Valida precondiciones/postcondiciones           │
-└─────────────────────────────────────────────────────┘
-           ↓        ↓        ↓        ↓
-    ┌─────────┬─────────┬──────────┬──────────┐
-    │         │         │          │          │
-  PHASE-0   PHASE-1   PHASE-2   PHASE-3   PHASE-4
-  (Setup)  (Parallel) (Synth)    (Build)   (Commit)
+┌────────────────────────────────────────────────┐
+│  Mini App Layer                                 │
+│  (pages/, components/, utils/, assets/)        │
+├────────────────────────────────────────────────┤
+│  Framework Layer (Alipay Runtime)              │
+│  - AXML parser, ACSS renderer                  │
+│  - Data binding (setData), lifecycle hooks     │
+│  - my.* APIs (request, navigateTo, etc)       │
+├────────────────────────────────────────────────┤
+│  Platform Layer (Alipay + Super Apps)         │
+│  - Device APIs, file system, sensors          │
+└────────────────────────────────────────────────┘
 ```
 
 **Patrones aplicados**:
-- **Pipeline**: Cada fase es una unidad independiente con entrada/salida clara
-- **Factory**: `PhaseFactory` crea instancias de agentes según tipo
-- **Strategy**: Cada agente implementa interfaz `Agent` con método `execute()`
-- **Repository**: Almacena artefactos (prompts, tokens, salidas) de forma agnóstica
-- **Builder**: `WorkflowBuilder` para configurar workflows complejos
+- **Convention over Configuration**: Estructura predefinida `/pages/{name}/{name}.{js,axml,acss,json}`
+- **Layered Architecture**: Separación clara entre app logic, framework, platform
+- **Module Pattern**: Cada página/componente es módulo autocontendido
+- **Repository Pattern** (utils/api.js): Abstrae my.request con Promise
+- **Configuration Management**: .env.example + CLAUDE.md como fuente de verdad
 
 ---
 
-## 2. Estructura de Módulos
+## 2. Estructura de Archivos
 
 ```
-claude_iterative/
-├── core/
-│   ├── workflow.py           # IterativeWorkflow (orquestador principal)
-│   ├── phase.py              # Clase base Phase + fases concretas
-│   ├── agent.py              # Interfaz Agent + agentes específicos
-│   └── state_manager.py      # Estado compartido entre fases
+/home/dev/Repos/claude_code_mi_apps/
 │
-├── agents/
-│   ├── analyst.py            # ANALYST agent
-│   ├── architect.py          # ARCHITECT agent
-│   ├── implementer.py        # IMPLEMENTER agent
-│   ├── test_writer.py        # TEST_WRITER agent
-│   ├── synthesizer.py        # SYNTHESIZER agent
-│   ├── committer.py          # COMMITTER agent
-│   └── base.py               # Clase base para todos
+├── CLAUDE.md                    # 📘 Contexto para Claude Code
+├── README.md                    # 📖 Quick start
+├── package.json                 # 🔧 Scripts npm (root workspace)
+├── .env.example                 # 🔐 Variables de entorno
+├── .gitignore                   # 📦 node_modules, .env, coverage/
 │
-├── execution/
-│   ├── executor.py           # Ejecuta tareas (secuencial/paralelo)
-│   ├── git_manager.py        # Operaciones Git
-│   ├── file_manager.py       # Lectura/escritura de archivos
-│   └── process_manager.py    # Ejecución de comandos shell
+├── scripts/
+│   └── init-dev.sh              # 🚀 Setup interactivo CLI
 │
-├── models/
-│   ├── task.py               # TaskDefinition dataclass
-│   ├── result.py             # PhaseResult dataclass
-│   └── config.py             # WorkflowConfig dataclass
-│
-├── utils/
-│   ├── logger.py             # Logging estructurado
-│   ├── token_manager.py      # Gestión de tokens API
-│   ├── validators.py         # Validadores de tareas/fases
-│   └── enums.py              # PhaseType, AgentType, etc.
-│
-└── cli/
-    ├── __main__.py           # Punto de entrada (claude-iterative)
-    └── commands.py           # Subcomandos (init, run, resume, etc.)
+└── my-miniapp/                  # 🎯 MINI PROGRAM REAL
+    ├── package.json             # Dependencias de la app
+    ├── mini.project.json        # Metadata Alipay
+    ├── .env                     # (generado por init-dev.sh)
+    │
+    ├── app.js                   # 📱 App lifecycle (onLaunch, onShow)
+    ├── app.json                 # Configuración global (pages, window)
+    ├── app.acss                 # Estilos globales (rpx units)
+    │
+    ├── pages/
+    │   └── index/
+    │       ├── index.js         # Page logic + handlers
+    │       ├── index.axml       # AXML markup (binding, loops, conditions)
+    │       ├── index.acss       # ACSS styles (responsive)
+    │       └── index.json       # Page meta
+    │
+    ├── components/              # Reutilizable custom components
+    │   └── .gitkeep
+    │
+    ├── utils/
+    │   ├── api.js               # 🔑 Promise wrapper para my.request
+    │   └── logger.js            # Logging helper (debug)
+    │
+    └── assets/                  # 📷 Imágenes, fuentes
+        └── .gitkeep
+```
 
-tests/
-├── unit/
-│   ├── test_workflow.py      # Tests para orquestador
-│   ├── test_phases.py        # Tests para cada fase
-│   ├── test_agents.py        # Tests para agentes base
-│   ├── test_state_manager.py # Tests para estado
-│   └── test_validators.py    # Tests para validadores
-│
-├── integration/
-│   ├── test_workflow_phases.py       # E2E: fase 0→5
-│   ├── test_parallel_execution.py    # E2E: paralelismo
-│   └── test_git_operations.py        # E2E: operaciones git
-│
-└── fixtures/
-    ├── sample_tasks.py       # Tasks de prueba
-    ├── mock_agents.py        # Agentes mock
-    └── temp_repos.py         # Manejo de repos temporales
+### Convención de Ruta Página/Componente
+
+Cada página/componente tiene 4 archivos en carpeta homónima:
+
+```
+pages/product-list/
+├── product-list.js     # Lógica (Page({ data, onLoad, ...}))
+├── product-list.axml   # Markup (<view a:for="{{items}}" ...>)
+├── product-list.acss   # Estilos (.container { width: 750rpx; })
+└── product-list.json   # Config ({ "navigationBarTitleText": "..." })
 ```
 
 ---
 
-## 3. Interfaces Públicas
+## 3. Módulos Lógicos y Responsabilidades
 
-### 3.1 Clase Principal: `IterativeWorkflow`
+### 3.1 **app.js** — Ciclo de Vida Global
 
-```python
-class IterativeWorkflow:
-    """Orquestador de fases automáticas."""
+```javascript
+App({
+  // Estado global accesible desde Pages
+  globalData: {
+    userToken: null,
+    apiBaseUrl: 'https://api.example.com'
+  },
 
-    def __init__(self, config: WorkflowConfig):
-        """Inicializa con configuración."""
+  // onLaunch: Se ejecuta al iniciar la app
+  onLaunch() {
+    this.restoreSession();
+  },
 
-    def execute(self, task: TaskDefinition) -> WorkflowResult:
-        """Ejecuta workflow completo.
+  // onShow: Al volver a primer plano
+  onShow() {
+    console.log('App visible');
+  },
 
-        Retorna resultado con todas las fases.
-        Lanza WorkflowException si falla precondición.
-        """
+  // onHide: Al ir a segundo plano
+  onHide() {
+    console.log('App hidden');
+  },
 
-    def execute_phase(self, phase_name: str) -> PhaseResult:
-        """Ejecuta una fase específica."""
+  // onError: Manejo global de errores
+  onError(error) {
+    console.error('Global error:', error);
+  },
 
-    def resume(self, session_id: str) -> WorkflowResult:
-        """Reanuda workflow interrumpido."""
-
-    def validate_prerequisites(self, task: TaskDefinition) -> bool:
-        """Valida que ambiente tenga todo lo requerido."""
-
-    @property
-    def current_phase(self) -> Phase:
-        """Fase actual en ejecución."""
-
-    @property
-    def state(self) -> WorkflowState:
-        """Estado global (tareas, decisiones, artefactos)."""
+  // Métodos helper
+  restoreSession() { /* ... */ },
+  setUserToken(token) { /* ... */ }
+});
 ```
 
-### 3.2 Interfaz Agent: `Agent`
+**Responsabilidad**: Inicialización global, manejo de errores app-level, estado compartido.
 
-```python
-class Agent(ABC):
-    """Agente IA ejecutable."""
+### 3.2 **app.json** — Configuración Global
 
-    @abstractmethod
-    async def execute(
-        self,
-        task: TaskDefinition,
-        state: WorkflowState,
-        prompt_template: str
-    ) -> AgentResult:
-        """
-        Ejecuta acción del agente.
-
-        Args:
-            task: Definición de tarea
-            state: Estado compartido con otros agentes
-            prompt_template: Template de prompt del agente
-
-        Returns:
-            Resultado con salida IA y artefactos
-        """
-
-    def validate_output(self, output: str) -> bool:
-        """Valida que output del agente sea válido."""
-
-    @property
-    def required_context(self) -> Set[str]:
-        """Contexto que necesita del estado."""
+```json
+{
+  "pages": [
+    "pages/index/index",
+    "pages/product-list/product-list",
+    "pages/detail/detail"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "Mi App",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#333",
+    "backgroundColor": "#fafafa",
+    "items": [
+      {
+        "pagePath": "pages/index/index",
+        "name": "Inicio"
+      }
+    ]
+  }
+}
 ```
 
-### 3.3 Clase Phase: `Phase`
+**Responsabilidad**: Declarar rutas, temas globales, tabs (si aplica).
 
-```python
-class Phase(ABC):
-    """Fase de ejecución."""
+### 3.3 **pages/index/index.js** — Lógica de Página
 
-    @abstractmethod
-    def execute(self, task: TaskDefinition, state: WorkflowState) -> PhaseResult:
-        """Ejecuta lógica de la fase."""
+```javascript
+Page({
+  data: {
+    // Estado reactivo
+    counter: 0,
+    items: [],
+    loading: false,
+    userInfo: null
+  },
 
-    @property
-    def name(self) -> str:
-        """Nombre de la fase (ej: PHASE-1)."""
+  // Lifecycle hooks
+  onLoad(options) {
+    // options contiene parámetros de navegación
+    this.fetchData();
+  },
 
-    @property
-    def agents(self) -> List[Agent]:
-        """Agentes que usa esta fase."""
+  onShow() {
+    // Se ejecuta cuando página es visible
+    // Refrescar si fue oculta
+  },
 
-    def can_execute(self, state: WorkflowState) -> bool:
-        """Valida precondiciones."""
+  onHide() {
+    // Cleanup: cancelar requests pendientes, timers
+  },
+
+  onUnload() {
+    // Página será destruida
+  },
+
+  // Event handlers
+  handleTap(event) {
+    this.setData({ counter: this.data.counter + 1 });
+  },
+
+  handleInput(event) {
+    const value = event.detail.value;
+    this.setData({ inputValue: value });
+  },
+
+  // Data fetching
+  fetchData() {
+    this.setData({ loading: true });
+    // Usar utils/api.js (Promise-based)
+    api.get('/products')
+      .then(data => {
+        this.setData({ items: data, loading: false });
+      })
+      .catch(error => {
+        console.error(error);
+        this.setData({ loading: false });
+      });
+  }
+});
 ```
 
-### 3.4 Modelos: `TaskDefinition` y `WorkflowResult`
+**Responsabilidad**: Estado reactivo, handlers, fetching de datos.
 
-```python
-@dataclass
-class TaskDefinition:
-    """Define una tarea a ejecutar."""
-    type: TaskType                    # feature, bugfix, refactor
-    title: str
-    description: str
-    coverage_target: float = 0.8      # 0.0 a 1.0
-    auto_mode: bool = False           # Sin pausas interactivas
-    parallel_impl: bool = False       # Paralelizar fase 3
+### 3.4 **pages/index/index.axml** — Markup
 
-    def validate(self) -> bool:
-        """Valida contenido."""
+```axml
+<view class="container">
+  <!-- Encabezado -->
+  <view class="header">
+    <text class="title">Hola {{userName}}</text>
+  </view>
 
-@dataclass
-class WorkflowResult:
-    """Resultado de ejecución."""
-    success: bool
-    phases: Dict[str, PhaseResult]
-    artifacts: Dict[str, Any]        # Archivos creados, commits, etc.
-    duration_seconds: float
-    session_id: str                  # Para resume
+  <!-- Contador (ejemplo funcional) -->
+  <view class="counter-section">
+    <text>Contador: {{counter}}</text>
+    <button onTap="handleTap" class="btn">Incrementar</button>
+  </view>
 
-    @property
-    def code_coverage(self) -> float:
-        """Cobertura lograda."""
+  <!-- Condicional -->
+  <view a:if="{{loading}}">
+    <text>Cargando...</text>
+  </view>
+
+  <!-- Loop -->
+  <scroll-view class="list" a:if="{{!loading}}">
+    <view a:for="{{items}}" a:key="id" class="item">
+      <text>{{item.name}}</text>
+      <text>Precio: {{item.price}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- Form -->
+  <form onSubmit="handleSubmit" class="form">
+    <input
+      name="email"
+      type="text"
+      placeholder="Email"
+      onInput="handleInput"
+      value="{{email}}"
+    />
+    <button form-type="submit" class="btn-primary">Enviar</button>
+  </form>
+</view>
 ```
 
-### 3.5 Estado Compartido: `WorkflowState`
+**Responsabilidad**: Renderizar UI con data binding, eventos.
 
-```python
-class WorkflowState:
-    """Estado mutable compartido entre fases."""
+### 3.5 **pages/index/index.acss** — Estilos
 
-    def __init__(self):
-        self._data: Dict[str, Any] = {}
-        self._lock = asyncio.Lock()
+```acss
+.container {
+  width: 750rpx;              /* Ancho completo */
+  padding: 32rpx;             /* Responsive padding */
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
 
-    async def set(self, key: str, value: Any) -> None:
-        """Set thread-safe."""
+.header {
+  margin-bottom: 40rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
 
-    async def get(self, key: str) -> Any:
-        """Get thread-safe."""
+.title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
 
-    async def add_artifact(self, name: str, path: str) -> None:
-        """Registra archivo generado."""
+.counter-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 40rpx 0;
+}
 
-    def branch_name(self) -> str:
-        """Genera nombre de rama."""
+.btn {
+  width: 200rpx;
+  height: 80rpx;
+  background-color: #1890ff;
+  color: white;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
 
-    def session_id(self) -> str:
-        """ID de sesión para resumir."""
+.btn:active {
+  transform: scale(0.95);    /* Feedback visual */
+  background-color: #0050b3;
+}
+
+.list {
+  max-height: 400rpx;
+  border-radius: 8rpx;
+  background: white;
+}
+
+.item {
+  padding: 20rpx;
+  border-bottom: 1rpx solid #eee;
+}
+
+.item text {
+  display: block;
+  margin: 8rpx 0;
+}
 ```
+
+**Responsabilidad**: Estilos responsive con rpx units.
+
+### 3.6 **utils/api.js** — Repository de HTTP
+
+```javascript
+/**
+ * Wrapper Promise-based para my.request
+ * Abstrae callback-style → Promise-style
+ */
+
+class APIClient {
+  constructor(baseUrl) {
+    this.baseUrl = baseUrl || 'https://api.example.com';
+  }
+
+  request(options) {
+    return new Promise((resolve, reject) => {
+      my.request({
+        url: `${this.baseUrl}${options.path}`,
+        method: options.method || 'GET',
+        data: options.data,
+        headers: {
+          'Content-Type': 'application/json',
+          ...options.headers
+        },
+        success: (response) => {
+          if (response.status === 200) {
+            resolve(response.data);
+          } else {
+            reject(new Error(response.data?.message || 'API Error'));
+          }
+        },
+        fail: (error) => {
+          reject(new Error(error.errorMessage || 'Network Error'));
+        }
+      });
+    });
+  }
+
+  get(path) {
+    return this.request({ path, method: 'GET' });
+  }
+
+  post(path, data) {
+    return this.request({ path, method: 'POST', data });
+  }
+
+  put(path, data) {
+    return this.request({ path, method: 'PUT', data });
+  }
+
+  delete(path) {
+    return this.request({ path, method: 'DELETE' });
+  }
+}
+
+// Exportar instancia singleton
+export default new APIClient(getApp().globalData.apiBaseUrl);
+```
+
+**Responsabilidad**: Abstracción de HTTP, reutilizable en todas las páginas.
 
 ---
 
-## 4. Decisiones de Diseño
+## 4. Configuración y Scripts
 
-### 4.1 Separación de Concerns
-- **core/**: Lógica de orquestación, agnóstica de IA
-- **agents/**: Implementación específica de cada agente
-- **execution/**: Operaciones del sistema (git, archivos, procesos)
-- **models/**: Estructuras de datos puras
+### 4.1 **package.json (Root)**
 
-**Beneficio**: Tests pueden mockear `execution` sin afectar `core`.
-
-### 4.2 Async-First Architecture
-- Fases paralelas (FASE-1: 3 agentes) ejecutan con `asyncio`
-- Non-blocking I/O para git, archivos, APIs
-- StateManager con locks para evitar race conditions
-
-**Beneficio**: 3x más rápido en paralelo. Tests deterministas con `pytest-asyncio`.
-
-### 4.3 Factory + Registry Pattern
-```python
-class PhaseFactory:
-    _phases = {
-        PhaseType.SETUP: PhaseSetup,
-        PhaseType.PARALLEL: PhaseParallel,
-        PhaseType.SYNTHESIS: PhaseSynthesis,
-        ...
-    }
-
-    @classmethod
-    def create(cls, phase_type: PhaseType) -> Phase:
-        return cls._phases[phase_type]()
+```json
+{
+  "name": "claude-alipay-miniapp",
+  "version": "1.0.0",
+  "scripts": {
+    "init-cli": "bash scripts/init-dev.sh",
+    "preview": "cd my-miniapp && miniprogram-cli preview",
+    "upload": "cd my-miniapp && miniprogram-cli upload --version 1.0.0",
+    "dev": "echo 'Usa npm run preview para desarrollo'"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
 ```
 
-**Beneficio**: Fácil agregar nuevas fases. Tests pueden registrar fases mock.
+### 4.2 **scripts/init-dev.sh** — Setup Interactivo
 
-### 4.4 Repository Pattern para Artefactos
-```python
-class ArtifactRepository:
-    def save(self, artifact: Artifact) -> str:     # path
-    def load(self, artifact_id: str) -> Artifact:
-    def list_by_phase(self, phase: str) -> List[Artifact]:
+```bash
+#!/bin/bash
+set -euo pipefail
+
+echo "=== Setup Alipay+ Mini Program CLI ==="
+
+# 1. Verificar prerequisitos
+echo "✓ Verificando prerequisitos..."
+NODE_VERSION=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
+if [ "$NODE_VERSION" -lt 18 ]; then
+  echo "✗ Requiere Node 18+, actual: $(node --version)"
+  exit 1
+fi
+echo "✓ Node: $(node --version)"
+echo "✓ NPM: $(npm --version)"
+
+# 2. Instalar miniprogram-cli globalmente
+if ! command -v miniprogram-cli &> /dev/null; then
+  echo "📦 Instalando miniprogram-cli..."
+  npm install -g @alipay/miniprogram-cli
+fi
+echo "✓ miniprogram-cli: $(miniprogram-cli --version)"
+
+# 3. Crear .env en my-miniapp/
+echo ""
+echo "🔐 Configurando variables de entorno..."
+cd my-miniapp
+
+if [ ! -f .env ]; then
+  read -p "WORKSPACE_ID: " WORKSPACE_ID
+  read -p "SUPER_APP_ID: " SUPER_APP_ID
+  read -p "MINI_PROGRAM_ID: " MINI_PROGRAM_ID
+  read -sp "CLI_ACCESS_KEY_ID: " CLI_ACCESS_KEY_ID
+  echo
+  read -sp "CLI_SECRET_ACCESS_KEY: " CLI_SECRET_ACCESS_KEY
+  echo
+
+  cat > .env << EOF
+WORKSPACE_ID=$WORKSPACE_ID
+SUPER_APP_ID=$SUPER_APP_ID
+MINI_PROGRAM_ID=$MINI_PROGRAM_ID
+CLI_ACCESS_KEY_ID=$CLI_ACCESS_KEY_ID
+CLI_SECRET_ACCESS_KEY=$CLI_SECRET_ACCESS_KEY
+EOF
+  echo "✓ .env creado"
+else
+  echo "✓ .env ya existe"
+fi
+
+# 4. Inicializar CLI con credentials
+echo ""
+echo "🚀 Inicializando miniprogram-cli..."
+miniprogram-cli init \
+  --workspace-id $(grep WORKSPACE_ID .env | cut -d'=' -f2) \
+  --super-app-id $(grep SUPER_APP_ID .env | cut -d'=' -f2) \
+  --mini-program-id $(grep MINI_PROGRAM_ID .env | cut -d'=' -f2) \
+  --access-key-id $(grep CLI_ACCESS_KEY_ID .env | cut -d'=' -f2) \
+  --secret-access-key $(grep CLI_SECRET_ACCESS_KEY .env | cut -d'=' -f2)
+
+echo ""
+echo "✅ Setup completado!"
+echo ""
+echo "Próximos pasos:"
+echo "  npm run preview    # Genera QR para preview en dispositivo"
+echo "  npm run upload     # Publica versión"
 ```
 
-**Beneficio**: Desacopla dónde se guardan artefactos (disco, S3, BD). Tests usan memoria.
+### 4.3 **.env.example**
 
-### 4.5 Validadores Separados
-```python
-class TaskValidator:
-    def validate_schema(self, task: TaskDefinition) -> List[ValidationError]
+```env
+# Alipay+ Mini Program CLI Configuration
+# Obtén estos valores de: https://mini.alipay.com/account/credentials
 
-class PhaseValidator:
-    def validate_preconditions(self, phase: Phase, state: WorkflowState) -> bool
-
-class AgentValidator:
-    def validate_output(self, output: str, agent_type: AgentType) -> bool
+WORKSPACE_ID=
+SUPER_APP_ID=
+MINI_PROGRAM_ID=
+CLI_ACCESS_KEY_ID=
+CLI_SECRET_ACCESS_KEY=
 ```
 
-**Beneficio**: Lógica de validación testeable independiente. Reutilizable.
+### 4.4 **CLAUDE.md** — Referencia para IA
 
-### Trade-offs
+Contenido completo del CLAUDE.md ya proporcionado en el system-reminder.
+
+---
+
+## 5. Decisiones de Diseño
+
+### 5.1 Estructura Flat-by-Convention
+
+```
+pages/index/index.js
+     index.axml
+     index.acss
+     index.json
+```
+
+**Pro**: Fácil navegar, búsqueda rápida en editor (Ctrl+P: "index").
+**Con**: 4 archivos por página pueden parecer verbosos.
+**Mitigación**: Snippets en editor para generar estructura.
+
+### 5.2 Utils/api.js como Singleton Promise-Based
+
+```javascript
+// En lugar de callbacks directos
+import api from '../../utils/api.js';
+
+api.get('/products')
+  .then(data => this.setData({ items: data }))
+  .catch(error => console.error(error));
+```
+
+**Pro**: Sintaxis familiar (async/await compatible), reutilizable.
+**Con**: Abstracción adicional (thin wrapper).
+**Mitigación**: Documentado en CLAUDE.md.
+
+### 5.3 app.js como Single Source of Truth para Global State
+
+```javascript
+const app = getApp();
+app.globalData.userToken = token;
+```
+
+**Pro**: Fácil de rastrear, accesible desde cualquier página.
+**Con**: No reactivo como `setData()`.
+**Mitigación**: Usar para config, token; usar `setData()` para UI.
+
+### 5.4 .env en my-miniapp/ (No en raíz)
+
+Separación clara: raíz = workspace de agentes/documentación, my-miniapp/ = app real.
+
+### Trade-offs Documentados
 
 | Decisión | Pro | Con | Mitigación |
 |----------|-----|-----|-----------|
-| Async-first | Paralelismo real | Complejidad | Abstractos con `State.execute()` |
-| Factory pattern | Extensible | Boilerplate | Decoradores para registro auto |
-| Repository agnóstico | Flexible | Overhead | Cache in-memory |
-| Dataclasses | Simple, tipado | Python 3.7+ | Requerido: 3.10+ |
+| Estructura 4-file (js,axml,acss,json) | Cohesión | Verbosidad | Snippets IDE |
+| api.js wrapper | async/await | Thin layer | Doc clara |
+| app.globalData | Centralizado | No reactivo | Usar setData para UI |
+| .env en my-miniapp/ | Claridad | 2 niveles | Mencionar en docs |
 
 ---
 
-## 5. Estrategia de Testeo (80% Coverage)
+## 6. Interfaz Pública (Módulos Exportables)
 
-### 5.1 Pirámide de Tests
+### 6.1 api.js Exports
 
-```
-              📦 E2E Tests (5%)
-         ▲ workflow completo + git real
-        /─\
-       /   \  🧪 Integration Tests (15%)
-      /     \ fases 0→5, paralelismo,
-     /───────\ git operations, file I/O
-    /         \
-   /           \  🧬 Unit Tests (80%)
-  /─────────────\ clases, métodos,
- ╱               ╲ validadores
-/                 \
-───────────────────
-  núcleo testeable
-```
+```javascript
+export default APIClient {
+  get(path: string): Promise<any>
+  post(path: string, data: any): Promise<any>
+  put(path: string, data: any): Promise<any>
+  delete(path: string): Promise<any>
+  request(options: RequestOptions): Promise<any>
+}
 
-### 5.2 Cobertura por Módulo (80% global)
-
-| Módulo | Target | Estrategia |
-|--------|--------|-----------|
-| `core/workflow.py` | 95% | Test todas las transiciones de fase |
-| `core/phase.py` | 90% | Tests para precondiciones, postcondiciones |
-| `core/agent.py` | 85% | Tests interface + agentes mock |
-| `core/state_manager.py` | 100% | Tests race conditions con threading |
-| `agents/analyst.py` | 75% | Mocks de API IA |
-| `agents/architect.py` | 75% | Mocks de API IA |
-| `execution/git_manager.py` | 80% | Tests en repo temporal |
-| `execution/file_manager.py` | 85% | Tests con `tmp_path` fixture |
-| `utils/validators.py` | 95% | Todos los casos de validación |
-| `cli/commands.py` | 70% | Mocks de I/O, argparse testing |
-
-**Total esperado**: ~82% de cobertura
-
-### 5.3 Estructura de Tests
-
-```python
-# tests/unit/test_workflow.py
-class TestIterativeWorkflow:
-    @pytest.fixture
-    def mock_state(self):
-        return MagicMock(spec=WorkflowState)
-
-    @pytest.fixture
-    def workflow(self, mock_state):
-        return IterativeWorkflow(config=WorkflowConfig())
-
-    async def test_execute_phase_0_creates_branch(self, workflow):
-        """Verifica que PHASE-0 crea rama feature/*"""
-
-    async def test_execute_phase_1_runs_parallel(self, workflow):
-        """Verifica que PHASE-1 ejecuta 3 agentes en paralelo"""
-
-    async def test_resume_from_interrupted_session(self, workflow):
-        """Verifica que resume() continúa desde último estado válido"""
-
-# tests/integration/test_workflow_phases.py
-@pytest.mark.integration
-class TestWorkflowE2E:
-    @pytest.fixture
-    def temp_git_repo(self, tmp_path):
-        """Repo temporal con git init"""
-
-    async def test_phases_0_to_5_complete_successfully(self, temp_git_repo):
-        """Verifica workflow completo sin intervención"""
+interface RequestOptions {
+  path: string
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  data?: any
+  headers?: Record<string, string>
+}
 ```
 
----
+### 6.2 Page Lifecycle (Interfaz Estándar)
 
-## 6. Consideraciones de Implementación
+```javascript
+Page({
+  data: { [key: string]: any },
 
-### 6.1 Dependencias Externas (Minimizadas)
-```
-core:
-  - dataclasses (stdlib)
-  - asyncio (stdlib)
+  // Lifecycle
+  onLoad(options?: Record<string, string>): void
+  onShow(): void
+  onHide(): void
+  onUnload(): void
 
-execution:
-  - gitpython
-  - pydantic (validación)
+  // Handlers (nombrados con handle{EventType})
+  handle[TapInput|Submit|Scroll|Touch]: (event: Event) => void
 
-agents:
-  - anthropic (SDK IA)
+  // Data methods
+  setData(data: Partial<Page.data>): void
 
-cli:
-  - click / typer (CLI)
-
-tests:
-  - pytest
-  - pytest-asyncio
-  - pytest-cov
-  - pytest-mock
-```
-
-### 6.2 Seguridad
-- **Tokens**: Leer de env vars, nunca loguear
-- **Comandos Git**: Sanitizar branch names con regex
-- **APIs IA**: Timeout y rate limiting
-- **Archivos**: Path traversal validation
-
-### 6.3 Observabilidad
-```python
-# Logging estructurado
-logger.info("phase_started", extra={
-    "phase": "PHASE-1",
-    "task_id": task.id,
-    "agents": len(phase.agents)
+  // Custom methods
+  [methodName]: (...args: any[]) => any
 })
+```
 
-# Métricas
-metrics.counter("workflow_executed", tags={"status": "success"})
-metrics.histogram("phase_duration_ms", value=elapsed_ms)
+### 6.3 App Lifecycle (Interfaz Estándar)
+
+```javascript
+App({
+  globalData: { [key: string]: any },
+
+  onLaunch(): void
+  onShow(): void
+  onHide(): void
+  onError(error: Error): void
+
+  [methodName]: (...args: any[]) => any
+})
 ```
 
 ---
 
-## 7. Roadmap de Implementación
+## 7. Flujo de Onboarding
 
-**Fase 1**: Core (~200 líneas testeable)
-- `core/workflow.py`
-- `core/state_manager.py`
-- `models/*.py`
+```
+1. Clonar repo
+   git clone ...
+   cd /home/dev/Repos/claude_code_mi_apps
 
-**Fase 2**: Agents (~500 líneas)
-- `agents/base.py`
-- `agents/analyst.py`, `architect.py`, etc.
+2. Instalar raíz
+   npm install
 
-**Fase 3**: Execution (~300 líneas)
-- `execution/git_manager.py`
-- `execution/file_manager.py`
+3. Ejecutar setup CLI
+   npm run init-cli
+   → Verifica Node, instala miniprogram-cli
+   → Pide credentials
+   → Genera .env en my-miniapp/
 
-**Fase 4**: CLI (~150 líneas)
-- `cli/commands.py`
+4. Validar estructura
+   ls -R my-miniapp/
+   → Verifica: app.js, pages/index/, utils/api.js, etc.
 
-**Fase 5**: Tests (→ 80% coverage)
-- Unit tests
-- Integration tests
+5. Preview
+   npm run preview
+   → Genera QR
+   → Usuario escanea con Alipay+
+   → Ve contador funcional en dispositivo
+
+6. Desarrollo
+   - Edita pages/index/index.axml (markup)
+   - Edita pages/index/index.js (lógica)
+   - Edita pages/index/index.acss (estilos)
+   - Auto-actualización en dispositivo
+
+7. Publicar
+   npm run upload
+   → Sube versión 1.0.0 a plataforma
+```
+
+---
+
+## 8. Consideraciones de Seguridad
+
+### 8.1 .env Handling
+- ✅ `.env` en `.gitignore`
+- ✅ `.env.example` con placeholders, en git
+- ✅ `init-dev.sh` solo escribe en `.env` local (nunca committed)
+- ✗ Nunca loguear credentials
+
+### 8.2 API Requests
+- ✅ HTTPS requerido (`my.request` lo enforza)
+- ✅ Headers de autenticación en cada request
+- ✅ Validar responses antes de usar
+
+### 8.3 Data Binding
+- ✅ Escapar variables en AXML (`{{variable}}` auto-escapa)
+- ✗ No usar `innerHTML` o eval (no existen en Alipay)
+
+---
+
+## 9. Resumen de Artefactos a Crear
+
+| Artefacto | Tipo | Propósito |
+|-----------|------|-----------|
+| `my-miniapp/app.js` | JS | Ciclo vida global, estado compartido |
+| `my-miniapp/app.json` | JSON | Configuración global, rutas, temas |
+| `my-miniapp/app.acss` | CSS | Estilos globales |
+| `my-miniapp/pages/index/index.{js,axml,acss,json}` | Multipart | Página principal con contador |
+| `my-miniapp/utils/api.js` | JS | Repository para HTTP |
+| `my-miniapp/.env.example` | ENV | Variables (raíz upload a .gitignore) |
+| `scripts/init-dev.sh` | Bash | Setup automático CLI |
+| `CLAUDE.md` | MD | Contexto para agentes IA |
+| `README.md` | MD | Quick start y troubleshooting |
+| `package.json` (root) | JSON | Scripts npm (preview, upload) |
 
 ---
 
@@ -460,9 +693,11 @@ metrics.histogram("phase_duration_ms", value=elapsed_ms)
 
 | Aspecto | Decisión |
 |---------|----------|
-| **Patrón** | Pipeline + Factory + Strategy |
-| **Async** | Sí, para paralelismo real |
-| **Modulación** | 8 módulos independientes |
-| **Testabilidad** | Inversión de dependencias + mocks |
-| **Cobertura** | 80% = 1200+ líneas de test / 1500 líneas código |
-| **Extensibilidad** | Factory registry para nuevas fases/agentes |
+| **Patrón** | Convention over Configuration + Layered |
+| **Estructura** | 4-file per page/component (js, axml, acss, json) |
+| **HTTP** | Promise wrapper (utils/api.js) |
+| **Estado Global** | app.js globalData |
+| **Estado Local** | Page data + setData() |
+| **Setup** | init-dev.sh automático, CLI-driven |
+| **Seguridad** | .env.gitignored, HTTPS enforced |
+| **DX** | Estructura intuitiva, CLAUDE.md + README.md completos |
