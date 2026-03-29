@@ -256,6 +256,9 @@ npm run init-cli
 # Desarrollo - Preview en dispositivo
 npm run preview
 
+# Desarrollo - Servidor local sin dispositivo
+npm run dev:local
+
 # Publicar versión
 npm run upload
 
@@ -264,6 +267,83 @@ miniprogram-cli --version
 
 # Logs de desarrollo
 miniprogram-cli logs
+```
+
+---
+
+## 🖥️ Servidor de Desarrollo Local
+
+Si esperas la aprobación de Alipay Platform o prefieres desarrollar sin dispositivo físico, puedes usar el servidor local:
+
+### Uso Básico
+
+```bash
+npm run dev:local
+```
+
+### Requisitos
+
+1. **Credenciales de Alipay Platform aprobadas**
+   - Tu aplicación debe estar completamente aprobada (no "Under Review")
+   - Ve a https://open.alipay.com/ para verificar el estado
+
+2. **Inicializar miniprogram-cli** (una sola vez)
+   ```bash
+   miniprogram-cli init
+   # Te pedirá:
+   # - WORKSPACE_ID
+   # - SUPER_APP_ID
+   # - MINI_PROGRAM_ID
+   # - CLI_ACCESS_KEY_ID
+   # - CLI_SECRET_ACCESS_KEY
+   ```
+
+### Qué hace `npm run dev:local`
+
+1. **Levanta servidor Express** en `http://localhost:3000`
+2. **Compila el mini program** automáticamente
+3. **Expone endpoints de debugging:**
+   ```
+   GET /packageInfoV2.json
+   GET /packageInfo.json
+   GET /debugInfo.json
+   GET /compile-page
+   ```
+4. **Soporta HMR** — cambios en código se reflejan automáticamente
+
+### Conectar el Alipay IDE
+
+Una vez que el servidor local está corriendo, puedes conectar el **Alipay Developer IDE** (si está disponible en tu plataforma) para visualizar cambios en tiempo real:
+
+```bash
+# Terminal 1
+npm run dev:local
+# Servidor en http://localhost:3000
+
+# Terminal 2 (opcional - monitorear cambios)
+npm test:watch
+```
+
+### Diferencias: `npm run preview` vs `npm run dev:local`
+
+| Comando | Requiere | QR | Dispositivo | Servidor Local |
+|---|---|---|---|---|
+| `npm run preview` | Credenciales aprobadas | ✅ Genera | ✅ Requiere | ❌ No |
+| `npm run dev:local` | Credenciales aprobadas | ❌ No | ❌ No | ✅ Sí |
+
+### Troubleshooting
+
+**Error: "accessKey is not configured"**
+```bash
+# Solución: Inicializar CLI con credenciales reales
+miniprogram-cli init
+```
+
+**Error: "WORKSPACE_ID not found"**
+```bash
+# Verifica que miniprogram-cli init se ejecutó completamente
+# Revisa: ~/.miniprogram-cli/settings.json
+cat ~/.miniprogram-cli/settings.json
 ```
 
 ---
